@@ -13,5 +13,8 @@ const router = express.Router();
 
 router.use(jwtMiddleware.verifyToken);
 
+router.post('/',reviewsController.createReview);
+// router.put('/',reviewsController.updateReview);
+
 
 module.exports = router;

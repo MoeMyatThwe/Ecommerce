@@ -20,7 +20,13 @@
         "eslint-config-airbnb-base": "^15.0.0",
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-import": "^2.27.5",
-        "nodemon": "^2.0.19",
+        "nodemon": "^3.1.4",
         "prisma": "^5.15.0"
-    }
+    },
+    "name": "dbs-assignment-moemyatthwemt",
+    "version": "1.0.0",
+    "description": "1. Clone this repository",
+    "main": ".eslintrc.js",
+    "author": "MOEMYATMT03.23@ichat.sp.edu.sg",
+    "license": "ISC"
 }
