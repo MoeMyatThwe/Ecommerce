@@ -17,39 +17,35 @@ module.exports.createReview = async function (req, res) {
     }
 };
 
-// Update a review
-module.exports.updateReview = async function (req, res) {
-    try {
-        const { review_id, rating, review_text } = req.body;
-
-        // Update the review
-        await reviewsModel.updateReview(review_id, rating, review_text);
-
-        // Respond with 200 OK
-        return res.status(200).send({ message: "Review updated successfully" });
-    } catch (error) {
-        console.error('Error updating review:', error);
-        return res.status(500).send(error);
-    }
-};
-
- // Get a review by ID
-// module.exports.getReviewById = async function (req, res) {
+// // Update a review
+// module.exports.updateReview = async function (req, res) {
 //     try {
-//         const { id } = req.params;
+//         const { review_id, rating, review_text } = req.body;
 
-//         const review = await getReviewById(id);
+//         // Update the review
+//         await reviewsModel.updateReview(review_id, rating, review_text);
 
-//         if (!review) {
-//             return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({ error: 'Review not found.' });
-//         }
-
-//         return res.status(HTTP_STATUS_CODES.OK).json(review);
+//         // Respond with 200 OK
+//         return res.status(200).send({ message: "Review updated successfully" });
 //     } catch (error) {
-//         console.error('Error getting review:', error);
-//         return res.status(HTTP_STATUS_CODES.SERVER_ERROR).json({ error: error.message });
+//         console.error('Error updating review:', error);
+//         return res.status(500).send(error);
 //     }
 // };
+
+ //Get a review by ID
+// Retrieve all reviews by member ID
+module.exports.retrieveAllReviewsByMemberId = async function (req, res) {
+    const member_id = req.params.memberId; // Assuming member_id is obtained from JWT token
+
+    try {
+        const reviews = await reviewsModel.getAllReviewsByMemberId(member_id);
+        return res.status(200).json({ reviews });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        return res.status(500).json({ error: 'Failed to retrieve reviews.' });
+    }
+};
 
 
 

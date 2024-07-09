@@ -19,7 +19,7 @@ module.exports.createReview = async function (sale_order_id, member_id, product_
     }
 };
 
-// Update a review
+// // Update a review
 // module.exports.updateReview = async function (review_id, rating, review_text) {
 //     const sql = `
 //         UPDATE reviews
@@ -35,20 +35,20 @@ module.exports.createReview = async function (sale_order_id, member_id, product_
 //     }
 // };
 
-// Get a review by ID
-// module.exports.getReviewById = async function (id) {
-//     const sql = `
-//         SELECT * FROM reviews
-//         WHERE id = $1
-//     `;
+// Retrieve all reviews by member ID
+module.exports.getAllReviewsByMemberId = async function (member_id) {
+    const sql = `
+       select * from get_all_reviews($1)
+    `;
 
-//     try {
-//         const result = await query(sql, [id]);
-//         return result.rows[0];
-//     } catch (error) {
-//         throw error;
-//     }
-// };
+    try {
+        const result = await query(sql, [member_id]);
+        console.log(result)
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
 
 
 
