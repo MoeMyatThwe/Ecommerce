@@ -19,22 +19,6 @@ module.exports.createReview = async function (sale_order_id, member_id, product_
     }
 };
 
-// // Update a review
-// module.exports.updateReview = async function (review_id, rating, review_text) {
-//     const sql = `
-//         UPDATE reviews
-//         SET rating = $1, review_text = $2
-//         WHERE review_id = $3
-//     `;
-
-//     try {
-//         await query(sql, [rating, review_text, review_id]);
-//         console.log('Review updated successfully');
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
 // Retrieve all reviews by member ID
 module.exports.getAllReviewsByMemberId = async function (member_id) {
     const sql = `
@@ -50,19 +34,42 @@ module.exports.getAllReviewsByMemberId = async function (member_id) {
     }
 };
 
+// // Update a review
+////kinda work but memberId is undefined
+module.exports.updateReview = async function (review_id, member_id, rating, review_text) {
+    const sql = `
+        CALL update_review($1, $2, $3, $4)
+    `;
 
+    try {
+        await query(sql, [review_id, member_id, rating, review_text]);
+        console.log('Review updated successfully');
+    } catch (error) {
+        throw error;
+    }
+};
 
-// // Delete a review
-// module.exports.deleteReview = async function (id) {
+//////////////////
+/////update all null
+// module.exports.updateReview = async function (review_id, member_id, rating, review_text) {
 //     const sql = `
-//         DELETE FROM reviews
-//         WHERE id = $1
+//         CALL update_review($1, $2, $3, $4)
 //     `;
 
 //     try {
-//         await query(sql, [id]);
-//         console.log('Review deleted successfully');
+//         await query(sql, [review_id, member_id, rating, review_text]);
+//         console.log('Review updated successfully');
 //     } catch (error) {
+//         console.error('Error updating review:', error);
 //         throw error;
 //     }
 // };
+
+// DELETE a review by reviewId
+// DELETE a review by reviewId
+exports.deleteReviewById = async (reviewId) => {
+    const queryText = 'DELETE FROM reviews WHERE review_id = $1';
+    const values = [reviewId];
+    const result = await pool.query(queryText, values);
+    return result.rowCount; // Return the number of rows affected (should be 1 if deleted successfully)
+};
