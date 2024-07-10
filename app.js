@@ -10,7 +10,7 @@ const cartsRoute = require('./routes/carts');
 const dashboardRoute = require('./routes/dashboard');
 const membersRoute = require('./routes/members');
 
-// Test
+// Test by dora
 // to parse NUMERIC types for pg-node
 // https://github.com/brianc/node-postgres/issues/811
 const types = require('pg').types
