@@ -65,11 +65,11 @@ module.exports.updateReview = async function (review_id, member_id, rating, revi
 //     }
 // };
 
-// DELETE a review by reviewId
+
 // DELETE a review by reviewId
 exports.deleteReviewById = async (reviewId) => {
-    const queryText = 'DELETE FROM reviews WHERE review_id = $1';
+    const queryText = 'DELETE FROM reviews WHERE id = $1';
     const values = [reviewId];
-    const result = await pool.query(queryText, values);
+    const result = await query(queryText, values);
     return result.rowCount; // Return the number of rows affected (should be 1 if deleted successfully)
 };

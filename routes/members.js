@@ -12,5 +12,5 @@ const router = express.Router();
 router.use(jwtMiddleware.verifyToken);
 
 router.get('/generateClv', membersController.generateCustomerLifetimeValue);
-
+router.get('/',membersController.retrieveAgeGroupSpending);
 module.exports = router;

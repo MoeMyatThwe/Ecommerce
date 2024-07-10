@@ -24,8 +24,21 @@ module.exports.login = function (req, res, next) {
         });
 }
 
+// retrieve AgeGroup Spending
 module.exports.retrieveAgeGroupSpending = function (req, res) {
+    const gender = req.query.gender || null;
+    const minTotalSpending = +req.query.minTotalSpending || 0;
+    const minMemberTotalSpending = +req.query.minMemberTotalSpending ||0;
 
+    memberModel.retrieveAgeGroupSpending(gender, minTotalSpending, minMemberTotalSpending)
+        .then(function (spendings) {
+            console.log(spendings)
+            return res.json({ spendings });
+        })
+        .catch(function (error) {
+            console.error(error);
+            return res.status(500).json({ message: error.message });
+        });
 }
 
 module.exports.generateCustomerLifetimeValue = function (req, res) {

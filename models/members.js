@@ -24,7 +24,19 @@ module.exports.retrieveByUsername = function retrieveByUsername(username) {
 };
 
 module.exports.retrieveAgeGroupSpending = function retrieveAgeGroupSpending(gender, minTotalSpending, minMemberTotalSpending) {
+    const sql = 'SELECT * FROM get_age_group_spending($1, $2, $3)';
+    const params = [gender, minTotalSpending, minMemberTotalSpending];
+    
+    // Filter out null or undefined parameters
+    const filteredParams = params.filter(param => param !== null && param !== undefined);
 
+    return query(sql, filteredParams)
+        .then(function (result) {
+            return result.rows;
+        })
+        .catch(function (error) {
+            throw error;
+        });
 };
 
 module.exports.generateCustomerLifetimeValue = function generateCustomerLifetimeValue() {
