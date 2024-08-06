@@ -12,7 +12,6 @@ const pool = new pg.Pool({
     max: process.env.DB_CONNECTION_LIMIT,
 });
 
-// Test by dora - commit using kiwi
 // Monkey patch .query(...) method to console log all queries before executing it
 // For debugging purpose
 const oldQuery = pool.query;

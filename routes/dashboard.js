@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.use(jwtMiddleware.verifyToken, jwtMiddleware.verifyIsAdmin);
 
-router.get('/ageGroupSpending', membersController.retrieveAgeGroupSpending);
+router.get('/age-group-spending',membersController.getAgeGroupSpending);
 
 
 

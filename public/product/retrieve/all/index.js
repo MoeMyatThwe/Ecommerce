@@ -34,19 +34,41 @@ window.addEventListener('DOMContentLoaded', function () {
                 productTypeCell.textContent = product.productType;
                 imageUrlCell.innerHTML = `<img src="${product.imageUrl}" alt="Product Image">`;
                 manufacturedOnCell.textContent = new Date(product.manufacturedOn).toLocaleString();
+
+
                 const viewProductButton = document.createElement("button");
                 viewProductButton.textContent = "View Product";
                 viewProductButton.addEventListener('click', function () {
                     localStorage.setItem("productId", product.id);
                     window.location.href = `/product/retrieve`;
                 });
+
                 viewProductCell.appendChild(viewProductButton);
                 const addFavouriteButton = document.createElement("button");
                 addFavouriteButton.textContent = "Add To Favourite";
-                addFavouriteButton.addEventListener('click', function () {
+                addFavouriteButton.addEventListener('click', async function (e) {
+                    e.preventDefault();
                     localStorage.setItem("favouriteProductId", product.id);
                     window.location.href = `/favourite/create`;
-                });
+                    try {
+                    const response = await fetch('/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ productId: product.id })
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to add favourite');
+                    }
+                
+                } catch (error) {
+                    console.error(error);
+                    // Handle error appropriately, e.g., show an error message to the user
+                }
+            });
+
                 addFavouriteCell.appendChild(addFavouriteButton);
                 const addToCartButton = document.createElement("button");
                 addToCartButton.textContent = "Add to Cart";
@@ -54,6 +76,9 @@ window.addEventListener('DOMContentLoaded', function () {
                     localStorage.setItem("cartProductId", product.id);
                     window.location.href = `/cart/create`;
                 });
+
+            
+
                 addToCartCell.appendChild(addToCartButton);
                 row.appendChild(nameCell);
                 row.appendChild(descriptionCell);

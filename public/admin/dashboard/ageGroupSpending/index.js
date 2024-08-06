@@ -1,105 +1,39 @@
-<<<<<<< HEAD
-// window.addEventListener('DOMContentLoaded', function () {
-//     const token = localStorage.getItem("token");
-
-//     fetchAgeGroupSpending();
-
-//     const form = document.querySelector("form");
-//     const button = document.querySelector("button");
-
-//     function fetchAgeGroupSpending(queryParams = "") {
-
-//         fetch(`/dashboard/ageGroupSpending?${queryParams}`, {
-//             headers: {
-//                 Authorization: `Bearer ${token}`
-//             }
-//         })
-//             .then(function (response) {
-//                 return response.json();
-//             })
-//             .then(function (body) {
-//                 if (body.error) throw new Error(body.error);
-//                 const spendings = body.spendings;
-//                 const tbody = document.querySelector("#spending-tbody");
-//                 tbody.innerHTML = '';
-//                 spendings.forEach(function (spending) {
-//                     const row = document.createElement("tr");
-
-//                     const ageGroupCell = document.createElement("td");
-//                     const totalSpendingCell = document.createElement("td");
-//                     const numberOfMembersCell = document.createElement("td");
-//                     ageGroupCell.textContent = spending.ageGroup;
-//                     totalSpendingCell.textContent = spending.totalSpending;
-//                     numberOfMembersCell.textContent = spending.numOfMembers;
-
-//                     row.appendChild(ageGroupCell);
-//                     row.appendChild(totalSpendingCell);
-//                     row.appendChild(numberOfMembersCell);
-
-//                     tbody.appendChild(row);
-//                 });
-//             })
-//             .catch(function (error) {
-//                 console.error(error);
-//             });
-//     }
-
-//     function handleFormSubmission(event) {
-//         event.preventDefault();
-
-//         const gender = form.elements.gender.value;
-//         const minTotalSpending = form.elements.minTotalSpending.value;
-//         const minMemberTotalSpending = form.elements.minMemberTotalSpending.value;
-//         const queryParams = new URLSearchParams({
-//             gender,
-//             minTotalSpending,
-//             minMemberTotalSpending
-//         }).toString();
-
-//         fetchAgeGroupSpending(queryParams);
-//     }
-
-//     button.addEventListener("click", handleFormSubmission);
-
-
-// });
-
+//done age group spending public  index.js 
 window.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem("token");
 
-    fetchAgeGroupSpending();
+    fetchAgeGroupSpending(); // Fetch default data on page load
 
-    const form = document.querySelector("form");
-    const button = document.querySelector("button");
+    const form = document.querySelector(".search");
+    const button = document.querySelector("button[type='submit']");
 
     function fetchAgeGroupSpending(queryParams = "") {
-        fetch(`/dashboard/ageGroupSpending?${queryParams}`, {
+        fetch(`/dashboard/age-group-spending?${queryParams}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
-        .then(function (response) {
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
             return response.json();
         })
-        .then(function (body) {
-            if (body.error) {
-                throw new Error(body.error); // Handle specific error message if returned from server
-            }
-            
-            const spendings = body.spendings || []; // Ensure spendings is an array or initialize as empty array
+        .then(data => {
+            const spendings = data.spendings;
             const tbody = document.querySelector("#spending-tbody");
             tbody.innerHTML = '';
-
-            spendings.forEach(function (spending) {
+            spendings.forEach(spending => {
                 const row = document.createElement("tr");
 
                 const ageGroupCell = document.createElement("td");
-                const totalSpendingCell = document.createElement("td");
-                const numberOfMembersCell = document.createElement("td");
-
                 ageGroupCell.textContent = spending.ageGroup;
-                totalSpendingCell.textContent = spending.totalSpending;
-                numberOfMembersCell.textContent = spending.numOfMembers;
+
+                const totalSpendingCell = document.createElement("td");
+                totalSpendingCell.textContent = spending.totalSpending.toFixed(2);
+
+                const numberOfMembersCell = document.createElement("td");
+                numberOfMembersCell.textContent = spending.memberCount;
 
                 row.appendChild(ageGroupCell);
                 row.appendChild(totalSpendingCell);
@@ -108,8 +42,8 @@ window.addEventListener('DOMContentLoaded', function () {
                 tbody.appendChild(row);
             });
         })
-        .catch(function (error) {
-            console.error(error);
+        .catch(error => {
+            console.error('Error fetching data:', error);
             // Handle error: Display a message to the user or log it for debugging
         });
     }
@@ -118,156 +52,20 @@ window.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
 
         const gender = form.elements.gender.value;
-        const minTotalSpending = form.elements.minTotalSpending.value;
-        const minMemberTotalSpending = form.elements.minMemberTotalSpending.value;
+        const minTotalSpending = form.elements.minTotalSpending.value || 0;
+        const minMemberTotalSpending = form.elements.minMemberTotalSpending.value || 0;
 
-        // Validate inputs here if needed
-
-        const queryParams = new URLSearchParams({
-            gender,
-            minTotalSpending,
-            minMemberTotalSpending
-        }).toString();
-
-        fetchAgeGroupSpending(queryParams);
-    }
-
-    button.addEventListener("click", handleFormSubmission);
-});
-=======
-// window.addEventListener('DOMContentLoaded', function () {
-//     const token = localStorage.getItem("token");
-
-//     fetchAgeGroupSpending();
-
-//     const form = document.querySelector("form");
-//     const button = document.querySelector("button");
-
-//     function fetchAgeGroupSpending(queryParams = "") {
-
-//         fetch(`/dashboard/ageGroupSpending?${queryParams}`, {
-//             headers: {
-//                 Authorization: `Bearer ${token}`
-//             }
-//         })
-//             .then(function (response) {
-//                 return response.json();
-//             })
-//             .then(function (body) {
-//                 if (body.error) throw new Error(body.error);
-//                 const spendings = body.spendings;
-//                 const tbody = document.querySelector("#spending-tbody");
-//                 tbody.innerHTML = '';
-//                 spendings.forEach(function (spending) {
-//                     const row = document.createElement("tr");
-
-//                     const ageGroupCell = document.createElement("td");
-//                     const totalSpendingCell = document.createElement("td");
-//                     const numberOfMembersCell = document.createElement("td");
-//                     ageGroupCell.textContent = spending.ageGroup;
-//                     totalSpendingCell.textContent = spending.totalSpending;
-//                     numberOfMembersCell.textContent = spending.numOfMembers;
-
-//                     row.appendChild(ageGroupCell);
-//                     row.appendChild(totalSpendingCell);
-//                     row.appendChild(numberOfMembersCell);
-
-//                     tbody.appendChild(row);
-//                 });
-//             })
-//             .catch(function (error) {
-//                 console.error(error);
-//             });
-//     }
-
-//     function handleFormSubmission(event) {
-//         event.preventDefault();
-
-//         const gender = form.elements.gender.value;
-//         const minTotalSpending = form.elements.minTotalSpending.value;
-//         const minMemberTotalSpending = form.elements.minMemberTotalSpending.value;
-//         const queryParams = new URLSearchParams({
-//             gender,
-//             minTotalSpending,
-//             minMemberTotalSpending
-//         }).toString();
-
-//         fetchAgeGroupSpending(queryParams);
-//     }
-
-//     button.addEventListener("click", handleFormSubmission);
-
-
-// });
-
-window.addEventListener('DOMContentLoaded', function () {
-    const token = localStorage.getItem("token");
-
-    fetchAgeGroupSpending();
-
-    const form = document.querySelector("form");
-    const button = document.querySelector("button");
-
-    function fetchAgeGroupSpending(queryParams = "") {
-        fetch(`/dashboard/ageGroupSpending?${queryParams}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (body) {
-            if (body.error) {
-                throw new Error(body.error); // Handle specific error message if returned from server
-            }
-            
-            const spendings = body.spendings || []; // Ensure spendings is an array or initialize as empty array
-            const tbody = document.querySelector("#spending-tbody");
-            tbody.innerHTML = '';
-
-            spendings.forEach(function (spending) {
-                const row = document.createElement("tr");
-
-                const ageGroupCell = document.createElement("td");
-                const totalSpendingCell = document.createElement("td");
-                const numberOfMembersCell = document.createElement("td");
-
-                ageGroupCell.textContent = spending.ageGroup;
-                totalSpendingCell.textContent = spending.totalSpending;
-                numberOfMembersCell.textContent = spending.numOfMembers;
-
-                row.appendChild(ageGroupCell);
-                row.appendChild(totalSpendingCell);
-                row.appendChild(numberOfMembersCell);
-
-                tbody.appendChild(row);
-            });
-        })
-        .catch(function (error) {
-            console.error(error);
-            // Handle error: Display a message to the user or log it for debugging
-        });
-    }
-
-    function handleFormSubmission(event) {
-        event.preventDefault();
-
-        const gender = form.elements.gender.value;
-        const minTotalSpending = form.elements.minTotalSpending.value;
-        const minMemberTotalSpending = form.elements.minMemberTotalSpending.value;
-
-        // Validate inputs here if needed
-
-        const queryParams = new URLSearchParams({
-            gender,
-            minTotalSpending,
-            minMemberTotalSpending
-        }).toString();
+        let queryParams = '';
+        if (gender || minTotalSpending || minMemberTotalSpending) {
+            queryParams = new URLSearchParams({
+                gender: gender || undefined,
+                minTotalSpending,
+                minMemberTotalSpending
+            }).toString();
+        }
 
         fetchAgeGroupSpending(queryParams);
     }
 
-    button.addEventListener("click", handleFormSubmission);
+    form.addEventListener("submit", handleFormSubmission);
 });
->>>>>>> 35f9920c60ad16ad4185fe5d6e7cbec7f03c1cef

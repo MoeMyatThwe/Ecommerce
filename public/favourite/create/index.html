@@ -1,28 +1,42 @@
+<!DOCTYPE html>
 <html>
-
 <head>
-    <title>Favourite Management | Create New Favourite</title>
+    <title>Add To Favourite</title>
+    <link href="index.css" rel="stylesheet" />
     <link href="/main.css" rel="stylesheet" />
 
-    <link href="./index.css" rel="stylesheet" />
     <script src="./index.js" type="text/javascript"></script>
 </head>
-
 <body>
     <header>
         <a href="../../product/">Product</a>
         <a href="../../review/">Review</a>
-        <a href="../">Favourite</a>
+        <a href="../index.html">Favourite</a>
         <a href="../../cart/">Cart</a>
         <a href="#" onclick="logout()">Logout</a>
     </header>
     <section>
         <div id="review-product-main">
-            <h1>Add To Favourite</span></h1>
-
+            <h1>Add To Favourite</h1>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Favourite Id</th>
+                        <th>Product Name</th>
+                        <th>Description</th>
+                        <th>Unit Price</th>
+                        <th>Country</th>
+                        <th>Product Type</th>
+                        <th>Image</th>
+                        <th>Manufactured On</th>
+                    </tr>
+                </thead>
+                <tbody id="product-tbody">
+                    <!-- Product details will be inserted here by JavaScript -->
+                </tbody>
+            </table>
         </div>
     </section>
-    <script src="../../auth.js" type="text/javascript"></script>
+    
 </body>
-
 </html>
