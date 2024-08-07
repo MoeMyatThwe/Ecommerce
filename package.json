@@ -1,9 +1,8 @@
-<<<<<<< HEAD
 {
     "dependencies": {
         "@prisma/client": "^5.15.0",
         "bcrypt": "^5.1.1",
-        "dotenv": "^16.0.2",
+        "dotenv": "^16.4.5",
         "express": "^4.18.1",
         "http-errors": "^2.0.0",
         "jsonwebtoken": "^9.0.2",
@@ -31,37 +30,3 @@
     "author": "MOEMYATMT03.23@ichat.sp.edu.sg",
     "license": "ISC"
 }
-=======
-{
-    "dependencies": {
-        "@prisma/client": "^5.15.0",
-        "bcrypt": "^5.1.1",
-        "dotenv": "^16.0.2",
-        "express": "^4.18.1",
-        "http-errors": "^2.0.0",
-        "jsonwebtoken": "^9.0.2",
-        "pg": "^8.11.3",
-        "pg-camelcase": "^0.0.3",
-        "prisma-case-format": "^2.2.1"
-    },
-    "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js",
-        "eslint": "eslint ."
-    },
-    "devDependencies": {
-        "eslint": "^8.38.0",
-        "eslint-config-airbnb-base": "^15.0.0",
-        "eslint-config-prettier": "^8.8.0",
-        "eslint-plugin-import": "^2.27.5",
-        "nodemon": "^3.1.4",
-        "prisma": "^5.15.0"
-    },
-    "name": "dbs-assignment-moemyatthwemt",
-    "version": "1.0.0",
-    "description": "1. Clone this repository",
-    "main": ".eslintrc.js",
-    "author": "MOEMYATMT03.23@ichat.sp.edu.sg",
-    "license": "ISC"
-}
->>>>>>> 35f9920c60ad16ad4185fe5d6e7cbec7f03c1cef
