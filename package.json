@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "@prisma/client": "^5.15.0",
+        "@prisma/client": "^5.18.0",
         "bcrypt": "^5.1.1",
         "dotenv": "^16.4.5",
         "express": "^4.18.1",
@@ -21,12 +21,9 @@
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-import": "^2.27.5",
         "nodemon": "^3.1.4",
-        "prisma": "^5.15.0"
+        "prisma": "^5.18.0"
     },
-    "name": "dbs-assignment-moemyatthwemt",
-    "version": "1.0.0",
-    "description": "1. Clone this repository",
-    "main": ".eslintrc.js",
-    "author": "MOEMYATMT03.23@ichat.sp.edu.sg",
-    "license": "ISC"
+    "prisma": {
+        "schema": "./prisma/schema.prisma"
+    }
 }

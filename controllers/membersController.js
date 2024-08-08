@@ -23,7 +23,7 @@ module.exports.login = function (req, res, next) {
             return res.status(500).json({ message: error.message });
         });
 }
-//done age group spending
+// done age group spending
 exports.getAgeGroupSpending = async (req, res) => {
 
     const gender = req.query.gender || null;

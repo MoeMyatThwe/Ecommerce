@@ -24,7 +24,7 @@ module.exports.retrieveByUsername = function retrieveByUsername(username) {
 };
 
 
-//done age group spending
+// done age group spending
 module.exports.fetchAgeGroupSpending = async (gender, minTotalSpending, minMemberTotalSpending) => {
     let sql = `
         SELECT * FROM get_age_group_spending($1, $2, $3);
@@ -43,7 +43,7 @@ module.exports.fetchAgeGroupSpending = async (gender, minTotalSpending, minMembe
     return result.rows;
 };
 
-//done clv
+// done clv
 module.exports.generateCustomerLifetimeValue = function generateCustomerLifetimeValue() {
     const sql = 'CALL compute_customer_lifetime_value()';
     return query(sql)

@@ -10,6 +10,11 @@ const router = express.Router();
 // router.use(jwtMiddleware.verifyToken, jwtMiddleware.verifyIsAdmin);
 
 router.use(jwtMiddleware.verifyToken);
-
+router.post('/',cartController.createCartItem);// Create a cart item
+router.get('/item', cartController.retrieveCartItem);
+router.get('/',cartController.retrieveAll);// Retrieve all cart items
+router.put('/:cartItemId',cartController.updateCartItem);// Update a specific cart item
+router.delete('/:cartItemId', cartController.deleteCartItem);// Delete a specific cart item
+router.get('/summary', cartController.retrieveCartSummary);
 
 module.exports = router;

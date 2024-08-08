@@ -18,7 +18,7 @@ module.exports.createReview = async function (req, res) {
 };
 
 
- //Get a review by ID
+ // Get a review by ID
 // Retrieve all reviews by member ID
 module.exports.retrieveAllReviewsByMemberId = async function (req, res) {
     const member_id = req.params.memberId; 

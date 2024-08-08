@@ -14,8 +14,8 @@ const router = express.Router();
 router.use(jwtMiddleware.verifyToken);
 
 router.post('/',reviewsController.createReview);
-router.get('/:memberId',reviewsController.retrieveAllReviewsByMemberId);//memeber can retrieve only their reviews
-router.put('/:reviewId',reviewsController.updateReview);//member can only update their own reviews
-router.delete('/:reviewId', reviewsController.deleteReviewById);//member can only delete their own review
+router.get('/:memberId',reviewsController.retrieveAllReviewsByMemberId);// member can retrieve only their reviews
+router.put('/:reviewId',reviewsController.updateReview);// member can only update their own reviews
+router.delete('/:reviewId', reviewsController.deleteReviewById);// member can only delete their own review
 
 module.exports = router;
