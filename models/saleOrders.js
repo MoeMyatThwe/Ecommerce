@@ -81,11 +81,9 @@ module.exports.retrieveAll = function retrieveAll(memberId, filters = {}) {
         }
     })
     .then(saleOrders => {
-        if (saleOrders.length === 0) {
-            throw new EMPTY_RESULT_ERROR(`Sale Order not found!`);
-        }
 
-        return saleOrders;
+    return saleOrders; 
+    
     })
     .catch(error => {
         console.error('Error retrieving sale orders:', error);

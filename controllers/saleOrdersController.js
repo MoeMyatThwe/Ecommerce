@@ -32,6 +32,9 @@ module.exports.retrieveAll = function (req, res) {
             return saleOrdersModel.retrieveAll(memberId, filters);
         })
         .then(function (saleOrders) {
+            if (saleOrders.length === 0) {
+                return res.status(404).json({ error: "No sale orders found matching the criteria."});
+            }
             return res.json({ saleOrders: saleOrders });
         })
         .catch(function (error) {
