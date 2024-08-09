@@ -1,4 +1,3 @@
-
 window.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem("token");
 
@@ -8,7 +7,6 @@ window.addEventListener('DOMContentLoaded', function () {
     const button = document.querySelector("button");
 
     function fetchSaleOrders(queryParams = "") {
-
         fetch(`/saleOrders?${queryParams}`, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -18,10 +16,35 @@ window.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(function (body) {
-                if (body.error) throw new Error(body.error);
-                const saleOrders = body.saleOrders;
                 const tbody = document.querySelector("#product-tbody");
                 tbody.innerHTML = "";
+
+                if (body.error) {
+                    // Handle the case where there's an error, such as "Sale Order not found!"
+                    const noResultsRow = document.createElement("tr");
+                    const noResultsCell = document.createElement("td");
+                    noResultsCell.colSpan = 11; // Adjust the colspan to the number of columns in your table
+                    noResultsCell.textContent = "No sale orders found.";
+                    noResultsCell.style.textAlign = "center";
+                    noResultsRow.appendChild(noResultsCell);
+                    tbody.appendChild(noResultsRow);
+                    console.error(body.error);
+                    return;
+                }
+
+                const saleOrders = body.saleOrders;
+
+                if (saleOrders.length === 0) {
+                    const noResultsRow = document.createElement("tr");
+                    const noResultsCell = document.createElement("td");
+                    noResultsCell.colSpan = 11; // Adjust the colspan to the number of columns in your table
+                    noResultsCell.textContent = "No sale orders found.";
+                    noResultsCell.style.textAlign = "center";
+                    noResultsRow.appendChild(noResultsCell);
+                    tbody.appendChild(noResultsRow);
+                    return;
+                }
+
                 saleOrders.forEach(function (saleOrder) {
                     saleOrder.saleOrderItem.forEach(function(item) {
                         const row = document.createElement("tr");
@@ -98,4 +121,3 @@ window.addEventListener('DOMContentLoaded', function () {
 
     button.addEventListener("click", handleFormSubmission);
 });
-

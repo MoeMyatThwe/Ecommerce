@@ -32,14 +32,9 @@ module.exports.retrieveAll = function (req, res) {
             return saleOrdersModel.retrieveAll(memberId, filters);
         })
         .then(function (saleOrders) {
-            if (saleOrders.length === 0) {
-                return res.status(404).json({ error: "No sale orders found matching the criteria."});
-            }
             return res.json({ saleOrders: saleOrders });
         })
         .catch(function (error) {
-            console.error(error);
-
             if (error instanceof EMPTY_RESULT_ERROR) {
                 return res.status(404).json({ error: error.message });
             }
@@ -52,7 +47,8 @@ module.exports.retrieveAll = function (req, res) {
                 return res.status(500).json({ error: "There was a conflict with an existing table." });
             }
 
+            // General error handler for unexpected errors
+            console.error('Unexpected error:', error);
             return res.status(500).json({ error: "An unexpected error occurred." });
         });
 };
-
