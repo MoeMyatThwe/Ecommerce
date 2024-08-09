@@ -1,10 +1,13 @@
 window.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem("token");
 
+    
     fetchSaleOrders();
 
     const form = document.querySelector("form");
     const button = document.querySelector("button");
+
+   
 
     function fetchSaleOrders(queryParams = "") {
         fetch(`/saleOrders?${queryParams}`, {
@@ -116,6 +119,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
         const queryParams = new URLSearchParams({ ...formValues, status: status.join(',') }).toString();
 
+        console.log('Query Parameters: ', queryParams);
         fetchSaleOrders(queryParams);
     }
 

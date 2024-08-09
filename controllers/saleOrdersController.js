@@ -1,4 +1,3 @@
-
 const { EMPTY_RESULT_ERROR, UNIQUE_VIOLATION_ERROR, DUPLICATE_TABLE_ERROR } = require('../errors');
 const saleOrdersModel = require('../models/saleOrders');
 const membersModel = require('../models/members');
@@ -23,9 +22,9 @@ module.exports.retrieveAll = function (req, res) {
                 productDescription: req.query.productDescription,
                 minUnitPrice: req.query.minUnitPrice,
                 maxUnitPrice: req.query.maxUnitPrice,
-                memberUsername: req.query.memberUsername,
-                minMemberDob: req.query.minMemberDob,
-                maxMemberDob: req.query.maxMemberDob,
+                memberUsername: req.query.username, 
+                minMemberDob: req.query.minDob,
+                maxMemberDob: req.query.maxDob,
                 sortOrder: req.query.sortOrder,
             };
 
@@ -35,6 +34,8 @@ module.exports.retrieveAll = function (req, res) {
             return res.json({ saleOrders: saleOrders });
         })
         .catch(function (error) {
+            console.error(error);
+
             if (error instanceof EMPTY_RESULT_ERROR) {
                 return res.status(404).json({ error: error.message });
             }
@@ -47,8 +48,6 @@ module.exports.retrieveAll = function (req, res) {
                 return res.status(500).json({ error: "There was a conflict with an existing table." });
             }
 
-            // General error handler for unexpected errors
-            console.error('Unexpected error:', error);
             return res.status(500).json({ error: "An unexpected error occurred." });
         });
 };

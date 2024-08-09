@@ -1,4 +1,3 @@
-
 const { PrismaClient } = require('@prisma/client');
 const { EMPTY_RESULT_ERROR } = require('../errors');
 
@@ -20,7 +19,6 @@ module.exports.retrieveAll = function retrieveAll(memberId, filters = {}) {
         sortOrder
     } = filters;
 
-    // Build the query using Prisma
     const whereClause = {};
 
     if (memberId) {
@@ -58,9 +56,15 @@ module.exports.retrieveAll = function retrieveAll(memberId, filters = {}) {
         };
     }
 
-    if (memberUsername || minMemberDob || maxMemberDob) {
+    if (memberUsername) {
         whereClause.member = {
-            ...(memberUsername && { username: { contains: memberUsername, mode: 'insensitive' } }),
+            username: { contains: memberUsername, mode: 'insensitive' }
+        };
+    }
+
+    if (minMemberDob || maxMemberDob) {
+        whereClause.member = {
+            ...whereClause.member,
             ...(minMemberDob && { dob: { gte: new Date(minMemberDob) } }),
             ...(maxMemberDob && { dob: { lte: new Date(maxMemberDob) } }),
         };
@@ -81,17 +85,14 @@ module.exports.retrieveAll = function retrieveAll(memberId, filters = {}) {
         }
     })
     .then(saleOrders => {
-        // if (saleOrders.length === 0) {
-        //     throw new EMPTY_RESULT_ERROR(`Sale Order not found!`);
-        // }
+        if (saleOrders.length === 0) {
+            throw new EMPTY_RESULT_ERROR(`Sale Order not found!`);
+        }
 
-    return saleOrders; 
-
+        return saleOrders;
     })
     .catch(error => {
         console.error('Error retrieving sale orders:', error);
         throw new Error('Failed to retrieve sale orders');
     });
 };
-
-
