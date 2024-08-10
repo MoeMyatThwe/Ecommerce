@@ -1,7 +1,7 @@
 const { EMPTY_RESULT_ERROR, UNIQUE_VIOLATION_ERROR } = require('../errors');
 const cartsModel = require('../models/carts');
 
-// create 
+
 module.exports.createCartItem = function(req, res) {
     const { memberId, productId, quantity } = req.body;
 
@@ -10,14 +10,18 @@ module.exports.createCartItem = function(req, res) {
     }
 
     return cartsModel.createOrUpdateCartItem(memberId, productId, quantity)
-        .then(function (cartItem) {
-            return res.status(201).json(cartItem);
+        .then(function (result) {
+            if (!result.success) {
+                return res.status(400).json({ error: result.message });
+            }
+            return res.status(201).json(result.cartItem);
         })
         .catch(function (error) {
             console.error('Error creating/updating cart item:', error);
             return res.status(500).json({ error: error.message });
         });
 };
+
 
 // retrieveAll
 module.exports.retrieveAll = function (req, res) {
