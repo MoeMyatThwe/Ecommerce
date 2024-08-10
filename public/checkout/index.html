@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link href="/main.css" rel="stylesheet" />
+    <link href="./index.css" rel="stylesheet" />
+    <script src="./index.js" defer></script>
+</head>
+<body>
+    <header>
+        <a href="../../../product/">Product</a>
+        <a href="../../../review/">Review</a>
+        <a href="../../../favourite/">Favourite</a>
+        <a href="../cart/retrieve/all/index.html">Cart</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </header>
+
+    <section>
+        <h1>Checkout</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Discount</th>
+                    <th>Sub-total</th>
+                </tr>
+            </thead>
+            <tbody id="checkout-items-tbody"></tbody>
+        </table>
+        <p id="total-price"></p>
+        <button id="confirm-checkout-button">Confirm Checkout</button>
+    </section>
+</body>
+</html>

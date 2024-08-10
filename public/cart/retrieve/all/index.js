@@ -239,3 +239,34 @@ window.addEventListener('DOMContentLoaded', function () {
         checkboxes.forEach(checkbox => checkbox.checked = this.checked);
     });
 });
+
+// ----------------- Cart Page: for Checkout Process -----------------
+document.getElementById('checkout-button').addEventListener('click', function() {
+    const token = localStorage.getItem("token");
+    const memberId = localStorage.getItem("member_id");
+
+    if (!token || !memberId) {
+        alert('Please log in before checking out.');
+        return;
+    }
+
+    const selectedItems = Array.from(document.querySelectorAll(".select-cart-item:checked"))
+        .map(checkbox => {
+            const row = checkbox.closest("tr");
+            return {
+                cartItemId: row.dataset.cartItemId,
+                productId: row.dataset.productId,
+                quantity: row.querySelector("input[type='number']").value,
+                unitPrice: parseFloat(row.querySelector("td:nth-child(5)").textContent.trim()) // Ensure this grabs the unit price
+            };
+        });
+
+    if (selectedItems.length === 0) {
+        alert("Please select at least one item to checkout.");
+        return;
+    }
+
+    localStorage.setItem('selectedCartItems', JSON.stringify(selectedItems));
+
+    window.location.href = '/checkout/index.html';
+});
