@@ -3,7 +3,7 @@ const { PrismaClient, Prisma } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-// Retrieve Cart Item by Member ID and Product ID
+// Retrieve Single Cart Item by Member ID and Product ID
 module.exports.retrieveByProductAndMember = function retrieveByProductAndMember(memberId, productId) {
     const parsedMemberId = parseInt(memberId, 10);
     const parsedProductId = parseInt(productId, 10);
@@ -27,58 +27,81 @@ module.exports.retrieveByProductAndMember = function retrieveByProductAndMember(
     });
 };
 
-
-// Create or Update Cart Item
-module.exports.createOrUpdateCartItem = function createOrUpdateCartItem(memberId, productId, quantity) {
+module.exports.createOrUpdateCartItem = async function createOrUpdateCartItem(memberId, productId, quantity) {
     const parsedMemberId = parseInt(memberId, 10);
     const parsedProductId = parseInt(productId, 10);
     console.log(`Creating or updating cart item for memberId: ${parsedMemberId}, productId: ${parsedProductId}, quantity: ${quantity}`);
-    return module.exports.retrieveByProductAndMember(parsedMemberId, parsedProductId)
-        .then(function (existingCartItem) {
-            if (existingCartItem) {
-                const newQuantity = existingCartItem.quantity + quantity;
-                console.log(`Updating cart item with new quantity: ${newQuantity}`);
-                return prisma.cartItem.update({
-                    where: {
-                        cartItemId: existingCartItem.cartItemId
-                    },
-                    data: {
-                        quantity: newQuantity
-                    }
-                });
-            } else {
-                console.log('Creating new cart item');
-                return prisma.cartItem.create({
-                    data: {
-                        memberId: parsedMemberId,
-                        productId: parsedProductId,
-                        quantity: quantity
-                    }
-                });
+
+    try {
+        // Retrieve the existing cart item
+        const existingCartItem = await module.exports.retrieveByProductAndMember(parsedMemberId, parsedProductId);
+
+        // Retrieve the product to get the stock quantity
+        const product = await prisma.product.findUnique({
+            where: {
+                id: parsedProductId
             }
-        }).catch(function (error) {
-            console.error('Error creating/updating cart item:', error);
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new Error(`A cart item with the same memberId: ${parsedMemberId} and productId: ${parsedProductId} already exists`);
-                }
-            }
-            throw new Error('Failed to create/update cart item');
         });
+
+        if (!product) {
+            throw new Error('Product not found');
+        }
+
+        // Calculate the total quantity
+        let newQuantity = quantity;
+        if (existingCartItem) {
+            newQuantity += existingCartItem.quantity;
+        }
+
+        // Check if the total quantity exceeds the available stock
+        if (newQuantity > product.stockQuantity) {
+            // Return the error message with the available stock quantity
+            const message = `We only have ${product.stockQuantity} units available for this product. Your total requested quantity exceeds our stock.`;
+            return { success: false, message };
+        }
+
+        // If the item exists, update it; otherwise, create a new item
+        if (existingCartItem) {
+            const updatedItem = await prisma.cartItem.update({
+                where: {
+                    cartItemId: existingCartItem.cartItemId
+                },
+                data: {
+                    quantity: newQuantity
+                }
+            });
+            return { success: true, cartItem: updatedItem };
+        } else {
+            const newItem = await prisma.cartItem.create({
+                data: {
+                    memberId: parsedMemberId,
+                    productId: parsedProductId,
+                    quantity: quantity
+                }
+            });
+            return { success: true, cartItem: newItem };
+        }
+    } catch (error) {
+        console.error('Error creating/updating cart item:', error);
+        throw new Error('Failed to create/update cart item');
+    }
 };
 
 
 // retrieve All
 module.exports.retrieveAll = function retrieveAll(memberId) { 
+    const parsedMemberId = parseInt(memberId, 10);
+    console.log(`Retrieving all cart items for memberId: ${parsedMemberId}`);
     return prisma.cartItem.findMany({
         where: {
-            memberId: memberId
+            memberId: parsedMemberId
         },
         include: {
-            product: true
-        }
+            product: true,
+        },
     })
     .then(function (cartItems) { 
+        console.log('All cart items retrieved:', cartItems);
         return cartItems; 
     }).catch(function (error) {
         console.error('Error retrieving all cart items:', error);
@@ -89,24 +112,42 @@ module.exports.retrieveAll = function retrieveAll(memberId) {
 
 // Update Cart Item
 module.exports.updateCartItem = function updateCartItem(cartItemId, quantity) {
-    console.log(`Updating cart item ${cartItemId} with quantity ${quantity}`);
+    return prisma.cartItem.findUnique({
+        where: {
+            cartItemId: parseInt(cartItemId, 10)
+        },
+        include: {
+            product: true,
+        }
+    }).then(function(cartItem) {
+        if (!cartItem) {
+            throw new Error (`No cart item found with cartItemId: ${cartItemId}`);
+        }
+
+        const newQuantity = quantity;
+
+        if (cartItem.product.stockQuantity < newQuantity) {
+            throw new Error(`The total quantity you want (${newQuantity}) exceeds the available stock (${cartItem.product.stockQuantity}).`);
+        }
+    
     return prisma.cartItem.update({
         where: {
             cartItemId: parseInt(cartItemId, 10)
         },
         data: {
-            quantity: quantity
+            quantity: newQuantity
         }
-    }).then(function (cartItem) {
-        console.log('Cart item updated:', cartItem);
-        return cartItem;
+    }).then(function (updatedCartItem) {
+        console.log('Cart item updated:', updatedCartItem);
+        return updatedCartItem;
+    });
     }).catch(function (error) {
         console.error('Error updating cart item:', error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2025') {
-                throw new Error(`No cart item found with cartItemId: ${cartItemId}`);
-            }
-        }
+        // if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        //    if (error.code === 'P2025') {
+        //        throw new Error(`No cart item found with cartItemId: ${cartItemId}`);
+        //    }
+        // }
         throw new Error('Failed to update cart item');
     });
 };
@@ -131,25 +172,6 @@ module.exports.deleteCartItem = function deleteCartItem(cartItemId) {
     });
 };
 
-// Retrieve All Cart Items for a Specific Member
-module.exports.retrieveAll = function retrieveAll(memberId) {
-    const parsedMemberId = parseInt(memberId, 10);
-    console.log(`Retrieving all cart items for memberId: ${parsedMemberId}`);
-    return prisma.cartItem.findMany({
-        where: {
-            memberId: parsedMemberId
-        },
-        include: {
-            product: true,
-        },
-    }).then(function (cartItems) {
-        console.log('All cart items retrieved:', cartItems);
-        return cartItems;
-    }).catch(function (error) {
-        console.error('Error retrieving all cart items:', error);
-        throw new Error('Failed to retrieve cart items');
-    });
-};
 
 // Retrieve Cart Summary for a Specific Member
 module.exports.retrieveSummary = function retrieveSummary(memberId) {

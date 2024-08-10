@@ -9,7 +9,7 @@
 //     }
 
 //     const productIdInput = document.querySelector("input[name='productId']");
-//     productIdInput.value = cartProductId;    
+//     productIdInput.value = cartProductId;
 
 //     const form = document.querySelector('form');
 //     form.onsubmit = function (e) {
@@ -25,28 +25,29 @@
 //             input.disabled = true;
 //         });
 
-
-//         //  -------------------for updating quantity for adding same item into cart
-            
 //         // Check if the cart item already exists
-//         fetch(`/carts?memberId=${memberId}&productId=${productId}`, {
+//         fetch(`/carts/item?memberId=${memberId}&productId=${productId}`, {
 //             method: 'GET',
 //             headers: {
-//                 'Authorization' : `Bearer ${token}`,
+//                 'Authorization': `Bearer ${token}`,
 //                 'Content-Type': 'application/json',
 //             }
 //         })
 //         .then(function (response) {
+//             if (!response.ok) {
+//                 return response.json().then((error) => {
+//                     throw new Error(`Failed to retrieve cart item: ${error.error}`);
+//                 });
+//             }
 //             return response.json();
 //         })
 //         .then(function (body) {
-//             if (body.error) throw new Error (body.error);
 //             const existingCartItem = body.cartItem;
 
 //             if (existingCartItem) {
 //                 // If the cart item exists, update its quantity
 //                 const newQuantity = existingCartItem.quantity + quantity;
-//                 return fetch(`/carts`, {
+//                 return fetch(`/carts/${existingCartItem.cartItemId}`, {
 //                     method: 'PUT',
 //                     headers: {
 //                         'Authorization': `Bearer ${token}`,
@@ -59,52 +60,52 @@
 //                     }),
 //                 });
 //             } else {
-        
-//         return fetch('/carts', {
-//             method: 'POST',
-//             headers: {
-//                 'Authorization' : `Bearer ${token}`,
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 memberId: memberId,
-//                 productId: productId,
-//                 quantity: quantity,
-//             }),
+//                 // If the cart item does not exist, create a new one
+//                 return fetch('/carts', {
+//                     method: 'POST',
+//                     headers: {
+//                         'Authorization': `Bearer ${token}`,
+//                         'Content-Type': 'application/json',
+//                     },
+//                     body: JSON.stringify({
+//                         memberId: memberId,
+//                         productId: productId,
+//                         quantity: quantity,
+//                     }),
+//                 });
+//             }
+//         })
+//         .then(function (response) {
+//             return response.json(); // parse body as JSON string
+//         })
+//         .then(function (body) {
+//             if (body.success === false && body.message) {
+//                 // This is our specific case where the quantity exceeds stock
+//                 alert(body.message);
+//             } else {
+//                 alert(`Cart item added/updated!`);
+//                 // Clear inputs
+//                 allInput.forEach((input) => {
+//                     if (input.type !== 'submit') input.value = '';
+//                 });
+//             }
+//         })
+//         .finally(function () {
+//             // Enable inputs
+//             allInput.forEach((input) => {
+//                 input.disabled = false;
+//             });
+//         })
+//         .catch(function (error) {
+//             console.error('Error adding/updating cart item:', error);
+//             alert('An unexpected error occurred.');
 //         });
-//     }
-// })
-// .then(function (response) {
-//     if (response.status !== 201 && response.status !== 200) return response.json(); // parse body as JSON string
-
-//     // Clear inputs
-//     allInput.forEach((input) => {
-//         if (input.type !== 'submit') input.value = '';
-//     });
-
-//     alert(`Cart item added/updated!`);
-
-//     return null;
-// })
-// .then(function (body) {
-//     if (!body) return;
-//     alert(body.error);
-// })
-// .finally(function () {
-//     // Enable inputs
-//     allInput.forEach((input) => {
-//         input.disabled = false;
-//     });
-// })
-// .catch(function (error) {
-//     console.error(error);
-//     alert('Error adding/updating cart item');
-// });
-// };
+//     };
 // });
 
 
-// --------------------------------------
+// ----------------------------------------------
+
 window.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem("token");
     const cartProductId = localStorage.getItem("cartProductId");
@@ -142,8 +143,8 @@ window.addEventListener('DOMContentLoaded', function () {
         })
         .then(function (response) {
             if (!response.ok) {
-                return response.json().then((error) => {
-                    throw new Error(`Failed to retrieve cart item: ${error.error}`);
+                return response.json().then(body => {
+                    throw new Error(body.error);
                 });
             }
             return response.json();
@@ -152,61 +153,102 @@ window.addEventListener('DOMContentLoaded', function () {
             const existingCartItem = body.cartItem;
 
             if (existingCartItem) {
-                // If the cart item exists, update its quantity
+                // Calculate the new total quantity
                 const newQuantity = existingCartItem.quantity + quantity;
-                return fetch(`/carts/${existingCartItem.cartItemId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        memberId: memberId,
-                        productId: productId,
-                        quantity: newQuantity,
-                    }),
-                });
-            } else {
-                // If the cart item does not exist, create a new one
-                return fetch('/carts', {
+
+                // Make a request to the server to check stock before updating the cart item
+                return fetch(`/products/${productId}/check-stock`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        memberId: memberId,
-                        productId: productId,
-                        quantity: quantity,
-                    }),
+                    body: JSON.stringify({ quantity: newQuantity })
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return response.json().then(body => {
+                            throw new Error(body.error);
+                        });
+                    }
+                    // If stock check passes, update the cart item
+                    return fetch(`/carts/${existingCartItem.cartItemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            memberId: memberId,
+                            productId: productId,
+                            quantity: newQuantity,
+                        }),
+                    });
+                });
+            } else {
+                // If the cart item does not exist, create a new one after checking stock
+                return fetch(`/products/${productId}/check-stock`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ quantity: quantity })
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return response.json().then(body => {
+                            throw new Error(body.error);
+                        });
+                    }
+                    // If stock check passes, create the cart item
+                    return fetch('/carts', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            memberId: memberId,
+                            productId: productId,
+                            quantity: quantity,
+                        }),
+                    });
                 });
             }
         })
         .then(function (response) {
-            if (response.status !== 201 && response.status !== 200) return response.json(); // parse body as JSON string
+            if (!response.ok) {
+                return response.json().then(body => {
+                    throw new Error(body.error);
+                });
+            }
 
-            // Clear inputs
+            return response.json();
+        })
+        .then(function (body) {
+            // Clear inputs only if the operation was successful
             allInput.forEach((input) => {
                 if (input.type !== 'submit') input.value = '';
             });
 
-            alert(`Cart item added/updated!`);
-
-            return null;
-        })
-        .then(function (body) {
-            if (!body) return;
-            alert(body.error);
-        })
-        .finally(function () {
-            // Enable inputs
-            allInput.forEach((input) => {
-                input.disabled = false;
-            });
+            alert('Cart item added/updated!');
         })
         .catch(function (error) {
             console.error('Error adding/updating cart item:', error);
-            alert('Error adding/updating cart item');
+
+            // Show a user-friendly error message if the quantity exceeds the stock
+            if (error.message.includes('exceeds the available stock')) {
+                alert(`Failed to add/update cart item: ${error.message}`);
+            } else {
+                alert('An error occurred while adding/updating the cart item.');
+            }
+        })
+        .finally(function () {
+            // Enable inputs regardless of success or failure
+            allInput.forEach((input) => {
+                input.disabled = false;
+            });
         });
     };
 });

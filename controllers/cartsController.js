@@ -21,7 +21,7 @@ module.exports.createCartItem = function(req, res) {
 
 // retrieveAll
 module.exports.retrieveAll = function (req, res) {
-    const memberId = res.locals.member_id; // Use member_id from res.locals
+    const memberId = res.locals.member_id; 
     return cartsModel.retrieveAll(memberId)
         .then(function (cartItems) {
             return res.json({ cartItems: cartItems });
