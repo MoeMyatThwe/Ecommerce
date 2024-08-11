@@ -160,6 +160,70 @@ function fetchCartSummary(token) {
         });
 }
 
+// function bulkUpdate(token) {
+//     const checkboxes = document.querySelectorAll(".select-cart-item:checked");
+//     const updates = [];
+
+//     checkboxes.forEach(function (checkbox) {
+//         const row = checkbox.closest("tr");
+//         const cartItemId = row.dataset.cartItemId;
+//         const quantity = row.querySelector("input[type='number']").value;
+
+//         updates.push({
+//             cartItemId: Number(cartItemId),
+//             quantity: Number(quantity)
+//         });
+//     });
+
+//     Promise.all(
+//         updates.map(update => 
+//             fetch(`/carts/${update.cartItemId}`, {
+//                 method: 'PUT',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     Authorization: `Bearer ${token}`
+//                 },
+//                 body: JSON.stringify({ quantity: update.quantity })
+//             })
+//         )
+//     )
+//     .then(() => {
+//         location.reload();
+//     })
+//     .catch(error => {
+//         console.error('Error updating cart items:', error);
+//     });
+// }
+
+// function bulkDelete(token) {
+//     const checkboxes = document.querySelectorAll(".select-cart-item:checked");
+//     const deletions = [];
+
+//     checkboxes.forEach(function (checkbox) {
+//         const row = checkbox.closest("tr");
+//         const cartItemId = row.dataset.cartItemId;
+
+//         deletions.push(cartItemId);
+//     });
+
+//     Promise.all(
+//         deletions.map(cartItemId =>
+//             fetch(`/carts/${cartItemId}`, {
+//                 method: 'DELETE',
+//                 headers: {
+//                     Authorization: `Bearer ${token}`
+//                 }
+//             })
+//         )
+//     )
+//     .then(() => {
+//         location.reload();
+//     })
+//     .catch(error => {
+//         console.error('Error deleting cart items:', error);
+//     });
+// }
+
 function bulkUpdate(token) {
     const checkboxes = document.querySelectorAll(".select-cart-item:checked");
     const updates = [];
@@ -175,23 +239,26 @@ function bulkUpdate(token) {
         });
     });
 
-    Promise.all(
-        updates.map(update => 
-            fetch(`/carts/${update.cartItemId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ quantity: update.quantity })
-            })
-        )
-    )
-    .then(() => {
-        location.reload();
+    fetch('/carts/bulk-update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ updates: updates })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error updating cart items:', data.error);
+            alert('Failed to update cart items.');
+        } else {
+            location.reload();
+        }
     })
     .catch(error => {
         console.error('Error updating cart items:', error);
+        alert('Failed to update cart items.');
     });
 }
 
@@ -203,26 +270,32 @@ function bulkDelete(token) {
         const row = checkbox.closest("tr");
         const cartItemId = row.dataset.cartItemId;
 
-        deletions.push(cartItemId);
+        deletions.push(Number(cartItemId));
     });
 
-    Promise.all(
-        deletions.map(cartItemId =>
-            fetch(`/carts/${cartItemId}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-        )
-    )
-    .then(() => {
-        location.reload();
+    fetch('/carts/bulk-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ cartItemIds: deletions })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error deleting cart items:', data.error);
+            alert('Failed to delete cart items.');
+        } else {
+            location.reload();
+        }
     })
     .catch(error => {
         console.error('Error deleting cart items:', error);
+        alert('Failed to delete cart items.');
     });
 }
+
 
 window.addEventListener('DOMContentLoaded', function () {
     const token = localStorage.getItem("token");

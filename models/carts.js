@@ -207,3 +207,45 @@ module.exports.retrieveSummary = function retrieveSummary(memberId) {
         throw new Error('Failed to retrieve cart summary');
     });
 };
+
+
+// Bulk update cart items
+module.exports.bulkUpdateCartItems = async function bulkUpdateCartItems(updates) {
+    try {
+        const updatedItems = [];
+        for (let update of updates) {
+            const updatedItem = await prisma.cartItem.update({
+                where: {
+                    cartItemId: update.cartItemId
+                },
+                data: {
+                    quantity: update.quantity
+                }
+            });
+            updatedItems.push(updatedItem);
+        }
+        return updatedItems;
+    } catch (error) {
+        console.error('Error updating cart items:', error);
+        throw new Error('Failed to update cart items.');
+    }
+};
+
+// Bulk delete cart items
+module.exports.bulkDeleteCartItems = async function bulkDeleteCartItems(cartItemIds) {
+    try {
+        const deletedItems = [];
+        for (let cartItemId of cartItemIds) {
+            const deletedItem = await prisma.cartItem.delete({
+                where: {
+                    cartItemId: cartItemId
+                }
+            });
+            deletedItems.push(deletedItem);
+        }
+        return deletedItems;
+    } catch (error) {
+        console.error('Error deleting cart items:', error);
+        throw new Error('Failed to delete cart items.');
+    }
+};

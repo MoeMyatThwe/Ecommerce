@@ -129,3 +129,38 @@ module.exports.bulkAddToCart = async function(req, res) {
         return res.status(500).json({ error: 'Failed to add products to cart.' });
     }
 };
+
+
+
+// Bulk update cart items
+module.exports.bulkUpdateCartItems = async function(req, res) {
+    const { updates } = req.body;
+    if (!Array.isArray(updates) || updates.length === 0) {
+        return res.status(400).json({ error: 'No items to update.' });
+    }
+
+    try {
+        const updatedItems = await cartsModel.bulkUpdateCartItems(updates);
+        return res.status(200).json({ updatedItems });
+    } catch (error) {
+        console.error('Error bulk updating cart items:', error);
+        return res.status(500).json({ error: 'Failed to update cart items.' });
+    }
+};
+
+// Bulk delete cart items
+module.exports.bulkDeleteCartItems = async function(req, res) {
+    const { cartItemIds } = req.body;
+    if (!Array.isArray(cartItemIds) || cartItemIds.length === 0) {
+        return res.status(400).json({ error: 'No items to delete.' });
+    }
+
+    try {
+        const deletedItems = await cartsModel.bulkDeleteCartItems(cartItemIds);
+        return res.status(200).json({ deletedItems });
+    } catch (error) {
+        console.error('Error bulk deleting cart items:', error);
+        return res.status(500).json({ error: 'Failed to delete cart items.' });
+    }
+};
+
