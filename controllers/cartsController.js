@@ -104,8 +104,9 @@ module.exports.retrieveCartSummary = function (req, res) {
 
 module.exports.bulkAddToCart = async function(req, res) {
     console.log('Request body:', req.body);
-
-    const { memberId, selectedItems } = req.body;
+    const memberId = res.locals.member_id;
+    const selectedItems  = req.body.products;
+    console.log('selected', selectedItems)
 
     if (!memberId || !Array.isArray(selectedItems) || selectedItems.length === 0) {
         return res.status(400).json({ error: 'Member ID and selected items are required' });
