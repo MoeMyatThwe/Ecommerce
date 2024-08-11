@@ -11,5 +11,5 @@ const router = express.Router();
 
 router.use(jwtMiddleware.verifyToken);
 router.post('/checkout', checkOutController.checkout);
-
+router.post('/confirmCheckout', checkOutController.confirmCheckout);
 module.exports = router;

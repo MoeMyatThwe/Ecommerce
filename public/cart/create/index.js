@@ -95,14 +95,16 @@ window.addEventListener('DOMContentLoaded', function () {
             alert('Cart item added/updated!');
         })
         .catch(function (error) {
-            console.error('Error adding/updating cart item:', error);
+            console.log('error: ', error);
+            alert('Error adding/updating cart item:', error.message);
 
             // Show a user-friendly error message if the quantity exceeds the stock
             if (error.message.includes('exceeds the available stock')) {
                 alert(`Failed to add/update cart item: ${error.message}`);
-            } else {
-                alert('An error occurred while adding/updating the cart item.');
             }
+            // } else {
+            //     alert('An error occurred while adding/updating the cart item.');
+            // }
         })
         .finally(function () {
             // Enable inputs regardless of success or failure

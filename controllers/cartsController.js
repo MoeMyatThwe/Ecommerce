@@ -5,9 +5,10 @@ const cartsModel = require('../models/carts');
 module.exports.createCartItem = function(req, res) {
     const { memberId, productId, quantity } = req.body;
 
-    if (quantity <= 0 || !Number.isInteger(quantity) || isNaN(quantity)) {
-        return res.status(400).json({ error: 'Quantity must be a positive integer.' });
-    }
+    // if (quantity <= 0 || !Number.isInteger(quantity) || isNaN(quantity)) {
+    //     return res.status(400).json({error: 'Quantity must be a positive integer.'});
+    //     // return res.status(400).json({ error: 'Quantity must be a positive integer.' });
+    // }
 
     return cartsModel.createOrUpdateCartItem(memberId, productId, quantity)
         .then(function (result) {
@@ -99,6 +100,8 @@ module.exports.retrieveCartSummary = function (req, res) {
             return res.status(500).json({ error: error.message });
         });
 };
+
+
 module.exports.bulkAddToCart = async function(req, res) {
     console.log('Request body:', req.body);
 

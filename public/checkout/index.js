@@ -86,9 +86,49 @@
 // }
 
 // ---------------------------------------------------
+function bulkDelete(token) {
+    const deletions = [];
+    const cartItemsString = localStorage.getItem('selectedCartItems');
+    
+    // Parse the string into an array
+    const cartItems = JSON.parse(cartItemsString);
+    
+    console.log('cart items: ', cartItems);
+    
+    // Check if cartItems is an array
+    if (Array.isArray(cartItems)) {
+        cartItems.forEach(function (item) {
+            const cartItemId = item.cartItemId;
+            deletions.push(cartItemId);
+        });
+
+        return Promise.all(
+            deletions.map(cartItemId =>
+                fetch(`/carts/${cartItemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+            )
+        )
+        .then(() => {
+            alert('Items deleted');
+            return true;
+        })
+        .catch(error => {
+            console.error('Error deleting cart items:', error);
+            return false;
+        });
+    } else {
+        console.error('Selected cart items is not an array');
+        return Promise.resolve(false);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const selectedCartItems = JSON.parse(localStorage.getItem('selectedCartItems'));
+    const token = localStorage.getItem("token");
 
     if (!selectedCartItems || selectedCartItems.length === 0) {
         document.getElementById('checkout-summary').innerHTML = '<p>No items selected for checkout.</p>';
@@ -101,9 +141,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
     document.getElementById('confirm-checkout-button').addEventListener('click', function() {
-        confirmCheckout(selectedCartItems);
+        alert("Thank you for purchasing");
+        
+        bulkDelete(token).then(deletionSuccessful => {
+            if (deletionSuccessful) {
+                window.location.href = "/cart/retrieve/all/index.html";
+            }
+        });
     });
 });
+
+
+
+
 
 function fetchProductDetailsForSelectedItems(selectedCartItems) {
     return Promise.all(selectedCartItems.map(async item => {
