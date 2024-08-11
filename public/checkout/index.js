@@ -170,6 +170,39 @@ function displaySelectedItems(selectedCartItems) {
     checkoutTableBody.innerHTML += totalRow;
 }
 
+// function confirmCheckout(selectedCartItems) {
+//     const token = localStorage.getItem("token");
+
+//     fetch('/checkout', {
+//         method: 'POST',
+//         headers: {
+//             'Authorization': `Bearer ${token}`,
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ items: selectedCartItems })
+//     })
+//     .then(function(response) {
+//         if (!response.ok) {
+//             return response.json().then(body => {
+//                 throw new Error(body.error);
+//             });
+//         }
+//         return response.json();
+//     })
+//     .then(function(data) {
+//         if (data.outOfStockItems && data.outOfStockItems.length > 0) {
+//             alert(`Checkout completed, but the following items were out of stock: ${data.outOfStockItems.join(', ')}`);
+//         } else {
+//             alert('Checkout completed successfully.');
+//         }
+//         window.location.href = '/checkout/confirmation.html';
+//     })
+//     .catch(function(error) {
+//         console.error('Error during checkout:', error);
+//         alert('An error occurred during checkout. Please try again.');
+//     });
+// }
+
 function confirmCheckout(selectedCartItems) {
     const token = localStorage.getItem("token");
 
@@ -195,10 +228,33 @@ function confirmCheckout(selectedCartItems) {
         } else {
             alert('Checkout completed successfully.');
         }
-        window.location.href = '/checkout/confirmation.html';
+
+        // Clear the items from the cart
+        clearCartItems(selectedCartItems);
     })
     .catch(function(error) {
         console.error('Error during checkout:', error);
         alert('An error occurred during checkout. Please try again.');
+    });
+}
+
+function clearCartItems(selectedCartItems) {
+    const token = localStorage.getItem("token");
+
+    Promise.all(selectedCartItems.map(item => {
+        return fetch(`/carts/${item.cartItemId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }))
+    .then(() => {
+        alert('Cart cleared successfully!');
+        window.location.href = '/cart/retrieve/all/index.html';  // Redirect back to the cart page
+    })
+    .catch(error => {
+        console.error('Error clearing cart items:', error);
+        alert('An error occurred while clearing the cart. Please try again.');
     });
 }

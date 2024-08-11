@@ -257,7 +257,7 @@ document.getElementById('checkout-button').addEventListener('click', function() 
                 cartItemId: row.dataset.cartItemId,
                 productId: row.dataset.productId,
                 quantity: row.querySelector("input[type='number']").value,
-                unitPrice: parseFloat(row.querySelector("td:nth-child(5)").textContent.trim()) // Ensure this grabs the unit price
+                unitPrice: parseFloat(row.querySelector("td:nth-child(5)").textContent.trim()) 
             };
         });
 

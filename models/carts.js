@@ -33,6 +33,11 @@ module.exports.createOrUpdateCartItem = async function createOrUpdateCartItem(me
     console.log(`Creating or updating cart item for memberId: ${parsedMemberId}, productId: ${parsedProductId}, quantity: ${quantity}`);
 
     try {
+        // Validate quantity
+        if (quantity <= 0 || !Number.isInteger(quantity)) {
+            const message = 'Quantity must be a positive integer.';
+            return { success: false, message };
+        }
         // Retrieve the existing cart item
         const existingCartItem = await module.exports.retrieveByProductAndMember(parsedMemberId, parsedProductId);
 

@@ -5,7 +5,7 @@
 -- Dumped from database version 16.3
 -- Dumped by pg_dump version 16.3
 
--- Started on 2024-07-12 17:02:13
+-- Started on 2024-08-11 21:53:01
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,7 +19,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 252 (class 1255 OID 18234)
+-- TOC entry 261 (class 1255 OID 18234)
 -- Name: add_favourite(integer, integer); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -45,7 +45,7 @@ $$;
 
 
 --
--- TOC entry 247 (class 1255 OID 18161)
+-- TOC entry 255 (class 1255 OID 18161)
 -- Name: compute_customer_lifetime_value(); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -128,7 +128,7 @@ $$;
 
 
 --
--- TOC entry 245 (class 1255 OID 18154)
+-- TOC entry 253 (class 1255 OID 18154)
 -- Name: compute_running_total_spending(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -157,7 +157,7 @@ $$;
 
 
 --
--- TOC entry 231 (class 1255 OID 18100)
+-- TOC entry 239 (class 1255 OID 18100)
 -- Name: create_review(integer, integer, integer, integer, text); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -193,7 +193,7 @@ END $$;
 
 
 --
--- TOC entry 244 (class 1255 OID 18148)
+-- TOC entry 252 (class 1255 OID 18148)
 -- Name: delete_review(integer); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -207,7 +207,7 @@ $$;
 
 
 --
--- TOC entry 248 (class 1255 OID 18196)
+-- TOC entry 257 (class 1255 OID 18196)
 -- Name: get_age_group_spending(character varying, numeric, numeric); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -255,7 +255,7 @@ $$;
 
 
 --
--- TOC entry 251 (class 1255 OID 18291)
+-- TOC entry 260 (class 1255 OID 18291)
 -- Name: get_all_favourites(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -272,7 +272,7 @@ END $$;
 
 
 --
--- TOC entry 246 (class 1255 OID 18143)
+-- TOC entry 254 (class 1255 OID 18143)
 -- Name: get_all_reviews(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -290,7 +290,7 @@ END $$;
 
 
 --
--- TOC entry 250 (class 1255 OID 18290)
+-- TOC entry 259 (class 1255 OID 18290)
 -- Name: get_favourite_by_id(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -307,7 +307,7 @@ END $$;
 
 
 --
--- TOC entry 253 (class 1255 OID 18343)
+-- TOC entry 262 (class 1255 OID 18343)
 -- Name: get_popular_favourites(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -327,7 +327,63 @@ $$;
 
 
 --
--- TOC entry 249 (class 1255 OID 18236)
+-- TOC entry 256 (class 1255 OID 31067)
+-- Name: place_orders(integer); Type: PROCEDURE; Schema: public; Owner: -
+--
+
+CREATE PROCEDURE public.place_orders(IN p_member_id integer)
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    item RECORD;
+    insufficient_stock_items TEXT[] := '{}';
+    sale_order_id INT;
+    create_order BOOLEAN := FALSE;
+BEGIN
+    -- Loop through each cart item for the member
+    FOR item IN 
+        SELECT ci.cart_item_id, ci.product_id, ci.quantity 
+        FROM cart_item ci 
+        WHERE ci.member_id = p_member_id
+    LOOP
+        -- Check if there is enough stock for the product in this cart item
+        IF (SELECT p.stock_quantity FROM product p WHERE p.id = item.product_id FOR UPDATE) >= item.quantity THEN
+            -- Deduct the stock quantity
+            UPDATE product 
+            SET stock_quantity = stock_quantity - item.quantity 
+            WHERE id = item.product_id;
+
+            -- Set flag to indicate an order will be created
+            create_order := TRUE;
+
+            -- Create the sale order if it's not created yet
+            IF create_order AND sale_order_id IS NULL THEN
+                INSERT INTO sale_order (member_id, order_datetime, status)
+                VALUES (p_member_id, NOW(), 'PACKING')
+                RETURNING id INTO sale_order_id;
+            END IF;
+
+            -- Insert the sale order item
+            INSERT INTO sale_order_item (sale_order_id, product_id, quantity)
+            VALUES (sale_order_id, item.product_id, item.quantity);
+
+            -- Remove the item from the cart (only if sufficient stock)
+            DELETE FROM cart_item WHERE cart_item_id = item.cart_item_id;
+        ELSE
+            -- If not enough stock, add the item name to the insufficient_stock_items array
+            insufficient_stock_items := array_append(insufficient_stock_items, (SELECT p.name FROM product p WHERE p.id = item.product_id));
+        END IF;
+    END LOOP;
+
+    -- Return the list of items with insufficient stock
+    RAISE NOTICE 'Items with insufficient stock: %', insufficient_stock_items;
+
+END;
+$$;
+
+
+--
+-- TOC entry 258 (class 1255 OID 18236)
 -- Name: remove_favourite(integer); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -342,7 +398,7 @@ $$;
 
 
 --
--- TOC entry 243 (class 1255 OID 18145)
+-- TOC entry 251 (class 1255 OID 18145)
 -- Name: update_review(integer, integer, integer, text); Type: PROCEDURE; Schema: public; Owner: -
 --
 
@@ -364,6 +420,97 @@ BEGIN
     SET rating = p_rating, review_text = p_review_text, review_date = CURRENT_DATE
     WHERE id = p_review_id AND member_id = p_member_id;
 END $$;
+
+
+--
+-- TOC entry 233 (class 1259 OID 30304)
+-- Name: _prisma_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public._prisma_migrations (
+    id character varying(36) NOT NULL,
+    checksum character varying(64) NOT NULL,
+    finished_at timestamp with time zone,
+    migration_name character varying(255) NOT NULL,
+    logs text,
+    rolled_back_at timestamp with time zone,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    applied_steps_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- TOC entry 235 (class 1259 OID 31022)
+-- Name: cart_item; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cart_item (
+    cart_item_id integer NOT NULL,
+    member_id integer NOT NULL,
+    product_id integer NOT NULL,
+    quantity integer NOT NULL,
+    created_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- TOC entry 234 (class 1259 OID 31021)
+-- Name: cart_item_cart_item_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cart_item_cart_item_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 4969 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: cart_item_cart_item_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cart_item_cart_item_id_seq OWNED BY public.cart_item.cart_item_id;
+
+
+--
+-- TOC entry 238 (class 1259 OID 31628)
+-- Name: coupon; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.coupon (
+    coupon_id integer NOT NULL,
+    coupon_code character varying(50) NOT NULL,
+    discount_percentage numeric(5,2) NOT NULL,
+    CONSTRAINT coupon_discount_percentage_check CHECK (((discount_percentage >= (0)::numeric) AND (discount_percentage <= (100)::numeric)))
+);
+
+
+--
+-- TOC entry 237 (class 1259 OID 31627)
+-- Name: coupon_coupon_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.coupon_coupon_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 4970 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: coupon_coupon_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.coupon_coupon_id_seq OWNED BY public.coupon.coupon_id;
 
 
 --
@@ -400,7 +547,7 @@ CREATE SEQUENCE public.favourite_favourite_id_seq
 
 
 --
--- TOC entry 4918 (class 0 OID 0)
+-- TOC entry 4971 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: favourite_favourite_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -442,7 +589,7 @@ CREATE SEQUENCE public.member_id_seq
 
 
 --
--- TOC entry 4919 (class 0 OID 0)
+-- TOC entry 4972 (class 0 OID 0)
 -- Dependencies: 218
 -- Name: member_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -476,7 +623,7 @@ CREATE SEQUENCE public.member_role_id_seq
 
 
 --
--- TOC entry 4920 (class 0 OID 0)
+-- TOC entry 4973 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: member_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -517,7 +664,7 @@ CREATE SEQUENCE public.product_id_seq
 
 
 --
--- TOC entry 4921 (class 0 OID 0)
+-- TOC entry 4974 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: product_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -556,7 +703,7 @@ CREATE SEQUENCE public.reviews_id_seq
 
 
 --
--- TOC entry 4922 (class 0 OID 0)
+-- TOC entry 4975 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -592,7 +739,7 @@ CREATE SEQUENCE public.sale_order_id_seq
 
 
 --
--- TOC entry 4923 (class 0 OID 0)
+-- TOC entry 4976 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: sale_order_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -628,7 +775,7 @@ CREATE SEQUENCE public.sale_order_item_id_seq
 
 
 --
--- TOC entry 4924 (class 0 OID 0)
+-- TOC entry 4977 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: sale_order_item_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -637,7 +784,76 @@ ALTER SEQUENCE public.sale_order_item_id_seq OWNED BY public.sale_order_item.id;
 
 
 --
--- TOC entry 4740 (class 2604 OID 18274)
+-- TOC entry 232 (class 1259 OID 30292)
+-- Name: supplier; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier (
+    id integer NOT NULL,
+    company_name character varying(255) NOT NULL,
+    descriptor text,
+    address character varying(255),
+    country character varying(100) NOT NULL,
+    contact_email character varying(50) NOT NULL,
+    company_url character varying(255),
+    founded_date date,
+    staff_size integer,
+    specialization character varying(100),
+    is_active boolean
+);
+
+
+--
+-- TOC entry 231 (class 1259 OID 30291)
+-- Name: supplier_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 4978 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: supplier_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_id_seq OWNED BY public.supplier.id;
+
+
+--
+-- TOC entry 236 (class 1259 OID 31047)
+-- Name: total_quantity1; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.total_quantity1 (
+    sum numeric
+);
+
+
+--
+-- TOC entry 4770 (class 2604 OID 31025)
+-- Name: cart_item cart_item_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_item ALTER COLUMN cart_item_id SET DEFAULT nextval('public.cart_item_cart_item_id_seq'::regclass);
+
+
+--
+-- TOC entry 4773 (class 2604 OID 31631)
+-- Name: coupon coupon_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupon ALTER COLUMN coupon_id SET DEFAULT nextval('public.coupon_coupon_id_seq'::regclass);
+
+
+--
+-- TOC entry 4764 (class 2604 OID 18274)
 -- Name: favourite favourite_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -645,7 +861,7 @@ ALTER TABLE ONLY public.favourite ALTER COLUMN favourite_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 4732 (class 2604 OID 16766)
+-- TOC entry 4756 (class 2604 OID 16766)
 -- Name: member id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -653,7 +869,7 @@ ALTER TABLE ONLY public.member ALTER COLUMN id SET DEFAULT nextval('public.membe
 
 
 --
--- TOC entry 4734 (class 2604 OID 16767)
+-- TOC entry 4758 (class 2604 OID 16767)
 -- Name: member_role id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -661,7 +877,7 @@ ALTER TABLE ONLY public.member_role ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4735 (class 2604 OID 16768)
+-- TOC entry 4759 (class 2604 OID 16768)
 -- Name: product id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -669,7 +885,7 @@ ALTER TABLE ONLY public.product ALTER COLUMN id SET DEFAULT nextval('public.prod
 
 
 --
--- TOC entry 4741 (class 2604 OID 18321)
+-- TOC entry 4765 (class 2604 OID 18321)
 -- Name: reviews id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -677,7 +893,7 @@ ALTER TABLE ONLY public.reviews ALTER COLUMN id SET DEFAULT nextval('public.revi
 
 
 --
--- TOC entry 4738 (class 2604 OID 16769)
+-- TOC entry 4762 (class 2604 OID 16769)
 -- Name: sale_order id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -685,7 +901,7 @@ ALTER TABLE ONLY public.sale_order ALTER COLUMN id SET DEFAULT nextval('public.s
 
 
 --
--- TOC entry 4739 (class 2604 OID 16770)
+-- TOC entry 4763 (class 2604 OID 16770)
 -- Name: sale_order_item id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -693,7 +909,51 @@ ALTER TABLE ONLY public.sale_order_item ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 4758 (class 2606 OID 18278)
+-- TOC entry 4767 (class 2604 OID 30295)
+-- Name: supplier id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier ALTER COLUMN id SET DEFAULT nextval('public.supplier_id_seq'::regclass);
+
+
+--
+-- TOC entry 4803 (class 2606 OID 30312)
+-- Name: _prisma_migrations _prisma_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public._prisma_migrations
+    ADD CONSTRAINT _prisma_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4805 (class 2606 OID 31029)
+-- Name: cart_item cart_item_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_item
+    ADD CONSTRAINT cart_item_pkey PRIMARY KEY (cart_item_id);
+
+
+--
+-- TOC entry 4807 (class 2606 OID 31636)
+-- Name: coupon coupon_coupon_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupon
+    ADD CONSTRAINT coupon_coupon_code_key UNIQUE (coupon_code);
+
+
+--
+-- TOC entry 4809 (class 2606 OID 31634)
+-- Name: coupon coupon_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupon
+    ADD CONSTRAINT coupon_pkey PRIMARY KEY (coupon_id);
+
+
+--
+-- TOC entry 4790 (class 2606 OID 18278)
 -- Name: favourite favourite_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -702,7 +962,7 @@ ALTER TABLE ONLY public.favourite
 
 
 --
--- TOC entry 4744 (class 2606 OID 16772)
+-- TOC entry 4776 (class 2606 OID 16772)
 -- Name: member member_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -711,7 +971,7 @@ ALTER TABLE ONLY public.member
 
 
 --
--- TOC entry 4746 (class 2606 OID 16774)
+-- TOC entry 4778 (class 2606 OID 16774)
 -- Name: member member_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -720,7 +980,7 @@ ALTER TABLE ONLY public.member
 
 
 --
--- TOC entry 4750 (class 2606 OID 16776)
+-- TOC entry 4782 (class 2606 OID 16776)
 -- Name: member_role member_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -729,7 +989,7 @@ ALTER TABLE ONLY public.member_role
 
 
 --
--- TOC entry 4748 (class 2606 OID 16778)
+-- TOC entry 4780 (class 2606 OID 16778)
 -- Name: member member_username_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -738,7 +998,7 @@ ALTER TABLE ONLY public.member
 
 
 --
--- TOC entry 4752 (class 2606 OID 16780)
+-- TOC entry 4784 (class 2606 OID 16780)
 -- Name: product product_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -747,7 +1007,7 @@ ALTER TABLE ONLY public.product
 
 
 --
--- TOC entry 4760 (class 2606 OID 18326)
+-- TOC entry 4792 (class 2606 OID 18326)
 -- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -756,7 +1016,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- TOC entry 4756 (class 2606 OID 16782)
+-- TOC entry 4788 (class 2606 OID 16782)
 -- Name: sale_order_item sale_order_item_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -765,7 +1025,7 @@ ALTER TABLE ONLY public.sale_order_item
 
 
 --
--- TOC entry 4754 (class 2606 OID 16784)
+-- TOC entry 4786 (class 2606 OID 16784)
 -- Name: sale_order sale_order_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -774,7 +1034,90 @@ ALTER TABLE ONLY public.sale_order
 
 
 --
--- TOC entry 4765 (class 2606 OID 18279)
+-- TOC entry 4801 (class 2606 OID 30299)
+-- Name: supplier supplier_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier
+    ADD CONSTRAINT supplier_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4793 (class 1259 OID 31040)
+-- Name: idx_company_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_name ON public.supplier USING btree (company_name);
+
+
+--
+-- TOC entry 4794 (class 1259 OID 31044)
+-- Name: idx_company_name_founded_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_name_founded_date ON public.supplier USING btree (company_name, founded_date);
+
+
+--
+-- TOC entry 4795 (class 1259 OID 31042)
+-- Name: idx_country; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_country ON public.supplier USING btree (country);
+
+
+--
+-- TOC entry 4796 (class 1259 OID 31045)
+-- Name: idx_country_staff_size_specialization_company_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_country_staff_size_specialization_company_name ON public.supplier USING btree (country, staff_size, specialization, company_name);
+
+
+--
+-- TOC entry 4797 (class 1259 OID 31046)
+-- Name: idx_specialization_founded_date_country; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_specialization_founded_date_country ON public.supplier USING btree (specialization, founded_date, country);
+
+
+--
+-- TOC entry 4798 (class 1259 OID 31041)
+-- Name: idx_supplier_country_staff_size_specialization_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_supplier_country_staff_size_specialization_active ON public.supplier USING btree (country, staff_size, specialization, is_active);
+
+
+--
+-- TOC entry 4799 (class 1259 OID 31068)
+-- Name: indx_specialization_staff_size; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX indx_specialization_staff_size ON public.supplier USING btree (specialization, staff_size);
+
+
+--
+-- TOC entry 4819 (class 2606 OID 31030)
+-- Name: cart_item fk_cart_item_member; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_item
+    ADD CONSTRAINT fk_cart_item_member FOREIGN KEY (member_id) REFERENCES public.member(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4820 (class 2606 OID 31035)
+-- Name: cart_item fk_cart_item_product; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_item
+    ADD CONSTRAINT fk_cart_item_product FOREIGN KEY (product_id) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 4814 (class 2606 OID 18279)
 -- Name: favourite fk_member; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -783,7 +1126,7 @@ ALTER TABLE ONLY public.favourite
 
 
 --
--- TOC entry 4761 (class 2606 OID 16785)
+-- TOC entry 4810 (class 2606 OID 16785)
 -- Name: member fk_member_role_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -792,7 +1135,7 @@ ALTER TABLE ONLY public.member
 
 
 --
--- TOC entry 4766 (class 2606 OID 18284)
+-- TOC entry 4815 (class 2606 OID 18284)
 -- Name: favourite fk_product; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -801,7 +1144,7 @@ ALTER TABLE ONLY public.favourite
 
 
 --
--- TOC entry 4763 (class 2606 OID 16790)
+-- TOC entry 4812 (class 2606 OID 16790)
 -- Name: sale_order_item fk_sale_order_item_product; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -810,7 +1153,7 @@ ALTER TABLE ONLY public.sale_order_item
 
 
 --
--- TOC entry 4764 (class 2606 OID 16795)
+-- TOC entry 4813 (class 2606 OID 16795)
 -- Name: sale_order_item fk_sale_order_item_sale_order; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -819,7 +1162,7 @@ ALTER TABLE ONLY public.sale_order_item
 
 
 --
--- TOC entry 4762 (class 2606 OID 16800)
+-- TOC entry 4811 (class 2606 OID 16800)
 -- Name: sale_order fk_sale_order_member; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -828,7 +1171,7 @@ ALTER TABLE ONLY public.sale_order
 
 
 --
--- TOC entry 4767 (class 2606 OID 18332)
+-- TOC entry 4816 (class 2606 OID 18332)
 -- Name: reviews reviews_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -837,7 +1180,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- TOC entry 4768 (class 2606 OID 18337)
+-- TOC entry 4817 (class 2606 OID 18337)
 -- Name: reviews reviews_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -846,7 +1189,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- TOC entry 4769 (class 2606 OID 18327)
+-- TOC entry 4818 (class 2606 OID 18327)
 -- Name: reviews reviews_sale_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -854,7 +1197,7 @@ ALTER TABLE ONLY public.reviews
     ADD CONSTRAINT reviews_sale_order_id_fkey FOREIGN KEY (sale_order_id) REFERENCES public.sale_order(id);
 
 
--- Completed on 2024-07-12 17:02:13
+-- Completed on 2024-08-11 21:53:01
 
 --
 -- PostgreSQL database dump complete

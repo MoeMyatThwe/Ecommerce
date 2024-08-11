@@ -4,7 +4,7 @@ Welcome to our E-Commerce project! This README file provides an overview of the 
 
 ##Overview
 
-This repository contains the backend implementation of an E-Commerce platform, focusing on functionalities such as product reviews, favourite products management, and related stored procedures. This README provides an overview of the project structure, functionalities, and usage instructions.
+This repository contains the backend implementation of an E-Commerce platform, focusing on functionalities such as product reviews, favourite products management,add to cart,checkout and related stored procedures. This README provides an overview of the project structure, functionalities, and usage instructions.
 
 ##Features Implemented
 Product Reviews
@@ -21,6 +21,7 @@ Product Reviews
 
 Stored Procedures
 
+    place_order: Check stock quantity before proceeding to place order
     create_review: Validates and inserts a new review into the database.
     update_review: Updates an existing review if the member has permission.
     delete_review: Deletes a review from the database.
@@ -32,6 +33,19 @@ Stored Procedures
     
 
 API Endpoints
+   
+
+    Cart
+
+    POST /carts: Add a product to the cart.
+    POST /carts/bulk: Bulk add products to the cart.
+    GET /carts: Retrieve all cart items.
+    PUT /carts/:cartItemId: Update a cart item.
+    DELETE /carts/:cartItemId: Remove a cart item.
+    GET /carts/summary: Retrieve cart summary.
+
+    Checkout
+    POST /checkout : checkout the products from cart
 
     Reviews
         POST /reviews: Create a new review.

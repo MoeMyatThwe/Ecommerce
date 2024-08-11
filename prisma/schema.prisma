@@ -128,3 +128,10 @@ model cartItem {
 
   @@map("cart_item")
 }
+
+model coupon {
+  coupon_id           Int       @id @default(autoincrement())  
+  coupon_code         String    @unique @db.VarChar(50)        
+  discount_percentage Decimal   @db.Decimal(5, 2)              
+}
+
