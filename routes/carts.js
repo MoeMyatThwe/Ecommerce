@@ -16,5 +16,6 @@ router.get('/',cartController.retrieveAll);// Retrieve all cart items
 router.put('/:cartItemId',cartController.updateCartItem);// Update a specific cart item
 router.delete('/:cartItemId', cartController.deleteCartItem);// Delete a specific cart item
 router.get('/summary', cartController.retrieveCartSummary);
+router.post('/bulk', cartController.bulkAddToCart);
 
 module.exports = router;
