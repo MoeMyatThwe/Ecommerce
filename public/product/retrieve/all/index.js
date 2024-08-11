@@ -500,7 +500,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            fetch('/carts/bulk', { 
+            fetch('/carts/bulk-addtoCart', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

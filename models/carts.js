@@ -249,3 +249,62 @@ module.exports.bulkDeleteCartItems = async function bulkDeleteCartItems(cartItem
         throw new Error('Failed to delete cart items.');
     }
 };
+
+module.exports.bulkAddToCart = async function bulkAddToCart(memberId, selectedItems) {
+    const parsedMemberId = parseInt(memberId, 10);
+
+    try {
+        for (let item of selectedItems) {
+            const parsedProductId = parseInt(item.productId, 10);
+            const quantity = item.quantity;
+
+            // Retrieve the existing cart item
+            let existingCartItem = await prisma.cartItem.findFirst({
+                where: {
+                    memberId: parsedMemberId,
+                    productId: parsedProductId,
+                },
+            });
+
+            // Retrieve the product to get the stock quantity
+            const product = await prisma.product.findUnique({
+                where: { id: parsedProductId },
+            });
+
+            if (!product) {
+                throw new Error(`Product with ID ${parsedProductId} not found.`);
+            }
+
+            // Calculate the new quantity
+            let newQuantity = quantity;
+            if (existingCartItem) {
+                newQuantity += existingCartItem.quantity;
+            }
+
+            // Check if the total quantity exceeds the available stock
+            if (newQuantity > product.stockQuantity) {
+                throw new Error(`Requested quantity exceeds stock for product ID ${parsedProductId}. Available stock: ${product.stockQuantity}`);
+            }
+
+            // If the item exists, update it; otherwise, create a new item
+            if (existingCartItem) {
+                await prisma.cartItem.update({
+                    where: { cartItemId: existingCartItem.cartItemId },
+                    data: { quantity: newQuantity },
+                });
+            } else {
+                await prisma.cartItem.create({
+                    data: {
+                        memberId: parsedMemberId,
+                        productId: parsedProductId,
+                        quantity: quantity,
+                    },
+                });
+            }
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error adding products to cart:', error);
+        throw new Error('Failed to bulk add products to cart.');
+    }
+};
